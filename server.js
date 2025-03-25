@@ -88,6 +88,23 @@ app.post("/crear-evento", async (req, res) => {
 
 });
 
+//Obtiene los eventos activos
+app.get("/obtenerEventos", async (req, res) => {
+
+  let events = [];
+  try{
+    const q = query(collection(db, "events"), where("state", "==", "activo"));
+    const querySnapshot = await getDocs(q);
+    querySnapshot.forEach((doc) => {
+      events.push(doc.data());
+    });
+    res.status(200).json(events);
+  }catch(e){
+    console.error("Error al obtener eventos: ", e)
+  }
+  
+});
+
 
 //Obtiene datos de pago realizdo, usado por el webhook
 async function getPaymentData(payment_id) {
