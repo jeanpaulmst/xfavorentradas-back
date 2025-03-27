@@ -5,7 +5,7 @@ import { MercadoPagoConfig, Preference } from 'mercadopago';
 import mercadopago from 'mercadopago';
 import { nanoid } from 'nanoid';
 import { initializeApp } from "firebase/app";
-import { collection, getFirestore, doc, setDoc, query, where, getDocs } from "firebase/firestore";
+import { collection, getFirestore, doc, setDoc, query, where, getDocs, updateDoc } from "firebase/firestore";
 
 import fs from 'fs';
 const config = JSON.parse(fs.readFileSync('./config.json', 'utf-8'));
@@ -88,12 +88,72 @@ app.post("/crear-evento", async (req, res) => {
 
 });
 
+app.post("/dar-baja-evento", async (req, res) => {
+
+  const { eventName } = req.body;
+
+  try{
+    const eventRef = doc(db, "events", eventName);
+    await setDoc(eventRef, { state: "inactivo" }, { merge: true });
+    res.status(200).json({ message: "El evento ha pasado a estado inactivo" });
+  }catch(e){
+    console.error("Error al eliminar evento: ", e)
+  }
+
+});
+
+app.post("eliminar-evento", async (req, res) => {
+  
+    const { eventName } = req.body;
+  
+    try{
+      const docRef = doc(db, "events", eventName);
+      const collRef = collection(docRef, "assistants");
+      const assistantsSnapshot = await getDocs(collRef);
+
+      assistantsSnapshot.forEach(async (doc) => {
+        await deleteDoc(doc.ref);
+      });
+
+      await deleteDoc(docRef);
+
+      res.status(200).json({ message: "El evento ha sido eliminado correctamente" });
+      
+    }catch(e){
+      console.error("Error al eliminar evento: ", e)
+    }
+
+});
+
+app.post("/modificar-evento", async (req, res) => {
+
+  const { eventToModifyName, eventName, eventPlace} = req.body;
+
+  console.log("evento a modificar", eventToModifyName)
+  console.log("nombre nuevo", eventName)
+  console.log("Lugar nuevo: ",eventPlace)
+  
+  try{
+
+    const eventRef = doc(db, "events", eventToModifyName)
+
+    await updateDoc(eventRef, {title: eventName, place: eventPlace});
+    
+    res.status(200).json({ message: "El evento ha sido modificado correctamente" });
+
+  }catch(e){
+    console.error("Error al modificar evento: ", e)
+  }
+
+});
+
+
 //Obtiene los eventos activos
 app.get("/obtenerEventos", async (req, res) => {
 
   let events = [];
   try{
-    const q = query(collection(db, "events"), where("state", "==", "activo"));
+    const q = query(collection(db, "events"));
     const querySnapshot = await getDocs(q);
     querySnapshot.forEach((doc) => {
       events.push(doc.data());
