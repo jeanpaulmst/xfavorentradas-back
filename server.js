@@ -34,7 +34,6 @@ const firebaseConfig = {
 
 const MP_ACCESS_TOKEN = process.env.MP_ACCESS_TOKEN;
 
-
 const client = new MercadoPagoConfig({ accessToken: MP_ACCESS_TOKEN });
 const preference = new Preference(client);
 
