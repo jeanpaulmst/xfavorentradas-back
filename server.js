@@ -5,14 +5,12 @@ import { MercadoPagoConfig, Preference } from 'mercadopago';
 import mercadopago from 'mercadopago';
 import { nanoid } from 'nanoid';
 import { initializeApp } from "firebase/app";
-import { collection, getFirestore, doc, setDoc, query, where, getDocs, updateDoc } from "firebase/firestore";
-
+import { collection, getFirestore, doc, getDoc, setDoc, query, where, getDocs, updateDoc } from "firebase/firestore";
+import dotenv from "dotenv";
 import fs from 'fs';
-const config = JSON.parse(fs.readFileSync('./config.json', 'utf-8'));
 
-
-const appFirebase = initializeApp(config.firebaseConfig);
-const db = getFirestore(appFirebase);
+//Variables de entorno
+dotenv.config();
 
 const app = express();
 app.use(express.json());
@@ -23,8 +21,26 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization'] // Headers permitidos
 }));
 
-const client = new MercadoPagoConfig({ accessToken: config.MP_ACCESS_TOKEN });
+//Variables de entorno
+const firebaseConfig = {
+  apiKey: process.env.FIREBASE_API_KEY,
+  authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.FIREBASE_PROJECT_ID,
+  storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.FIREBASE_APP_ID,
+  measurementId: process.env.FIREBASE_MEASUREMENT_ID
+};
+
+const MP_ACCESS_TOKEN = process.env.MP_ACCESS_TOKEN;
+
+
+const client = new MercadoPagoConfig({ accessToken: MP_ACCESS_TOKEN });
 const preference = new Preference(client);
+
+const appFirebase = initializeApp(firebaseConfig);
+const db = getFirestore(appFirebase);
+
 const PORT = 8080
 
 app.get("/", (req, res) => {
@@ -69,6 +85,8 @@ app.post("/generar-preferencia/:name/:place/:price", async (req, res) => {
 
 });
 
+
+// ----
 app.post("/crear-evento", async (req, res) => {
 
   const event = req.body;
@@ -76,10 +94,8 @@ app.post("/crear-evento", async (req, res) => {
   //Crear evento en la BD
   try{
 
-    await setDoc(doc(db, "events", event.title), event);
+    await setDoc(doc(db, "events", event.id), event);
 
-    const asistentesRef = doc(collection(db, "events", event.title, "assistants"));
-    await setDoc(asistentesRef, { placeholder: true });
     res.status(200).json(event)
 
   }catch(e){
@@ -90,10 +106,10 @@ app.post("/crear-evento", async (req, res) => {
 
 app.post("/dar-baja-evento", async (req, res) => {
 
-  const { eventName } = req.body;
+  const { eventId } = req.body;
 
   try{
-    const eventRef = doc(db, "events", eventName);
+    const eventRef = doc(db, "events", eventId);
     await setDoc(eventRef, { state: "inactivo" }, { merge: true });
     res.status(200).json({ message: "El evento ha pasado a estado inactivo" });
   }catch(e){
@@ -104,10 +120,10 @@ app.post("/dar-baja-evento", async (req, res) => {
 
 app.post("eliminar-evento", async (req, res) => {
   
-    const { eventName } = req.body;
+    const { eventId } = req.body;
   
     try{
-      const docRef = doc(db, "events", eventName);
+      const docRef = doc(db, "events", eventId);
       const collRef = collection(docRef, "assistants");
       const assistantsSnapshot = await getDocs(collRef);
 
@@ -127,15 +143,15 @@ app.post("eliminar-evento", async (req, res) => {
 
 app.post("/modificar-evento", async (req, res) => {
 
-  const { eventToModifyName, eventName, eventPlace} = req.body;
+  const { eventToModifyId, eventName, eventPlace} = req.body;
 
-  console.log("evento a modificar", eventToModifyName)
+  console.log("evento a modificar", eventToModifyId)
   console.log("nombre nuevo", eventName)
   console.log("Lugar nuevo: ",eventPlace)
   
   try{
 
-    const eventRef = doc(db, "events", eventToModifyName)
+    const eventRef = doc(db, "events", eventToModifyId)
 
     await updateDoc(eventRef, {title: eventName, place: eventPlace});
     
@@ -163,6 +179,28 @@ app.get("/obtenerEventos", async (req, res) => {
     console.error("Error al obtener eventos: ", e)
   }
   
+});
+
+app.get("/obtenerEvento/:eventId", async (req, res) => {
+  const { eventId } = req.params; // Se obtiene el ID desde la URL
+
+  const eventIdTrimmed = eventId.trim();
+  console.log("ID de evento:", JSON.stringify(eventId));
+
+  try {
+    const eventRef = doc(db, "events", eventIdTrimmed); // Referencia al documento
+    const eventSnap = await getDoc(eventRef); // Se obtiene el documento
+    
+    if (!eventSnap.exists()) {
+      res.status(404).json( { error: "No existe el evento"} )
+    } else {
+      
+      res.status(200).json({ ...eventSnap.data() }); // Se devuelve el JSON con los datos
+    }
+  
+  } catch (error) {
+    res.status(500).json({ error: "Error al buscar evento", details: error.message });
+  }
 });
 
 
@@ -232,12 +270,12 @@ app.post('/webhook', async (req, res) => {
 });
 
 //Obtener los asistentes de un evento
-app.get("/getAssistants/:eventName", async (req, res) => {
+app.get("/getAssistants/:eventId", async (req, res) => {
 
-  const { eventName } = req.params
+  const { eventId } = req.params
 
   try{
-    const eventRef  = doc(db, "events", eventName)
+    const eventRef  = doc(db, "events", eventId)
     const assistantsCollRef = collection(eventRef, "assistants"); 
 
     const assistantsSnapshot = await getDocs(assistantsCollRef); 

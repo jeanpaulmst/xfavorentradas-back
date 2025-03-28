@@ -1,7 +1,7 @@
 
-
+# Configuración del entorno
 .env
-
-config.json
+.env.local
+.env.*.local
 
 node_modules
