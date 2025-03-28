@@ -41,7 +41,7 @@ const preference = new Preference(client);
 const appFirebase = initializeApp(firebaseConfig);
 const db = getFirestore(appFirebase);
 
-const PORT = 8080
+const PORT = process.env.PORT || 8080;
 
 app.get("/", (req, res) => {
   res.send("Servidor corriendo correctamente 🚀");
