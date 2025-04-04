@@ -77,9 +77,8 @@ app.post("/generar-preferencia/:name/:place/:price", async (req, res) => {
                 place : place
     });
 
-  } catch (error) {
-    console.error("Error al crear preferencia:", error);
-    res.status(500).json({ error: "Error al crear la preferencia" });
+  } catch(e) {
+    res.status(500).json({ error: e.message });
   }
 
 });
@@ -98,7 +97,7 @@ app.post("/crear-evento", async (req, res) => {
     res.status(200).json(event)
 
   }catch(e){
-    console.error("Error al crear evento: ", e)
+    res.status(500).json({ error: e.message });
   }
 
 });
@@ -112,7 +111,7 @@ app.post("/dar-baja-evento", async (req, res) => {
     await setDoc(eventRef, { state: "inactivo" }, { merge: true });
     res.status(200).json({ message: "El evento ha pasado a estado inactivo" });
   }catch(e){
-    console.error("Error al eliminar evento: ", e)
+    res.status(500).json({ error: e.message });
   }
 
 });
@@ -135,7 +134,7 @@ app.post("eliminar-evento", async (req, res) => {
       res.status(200).json({ message: "El evento ha sido eliminado correctamente" });
       
     }catch(e){
-      console.error("Error al eliminar evento: ", e)
+      res.status(500).json({ error: e.message });
     }
 
 });
@@ -157,7 +156,7 @@ app.post("/modificar-evento", async (req, res) => {
     res.status(200).json({ message: "El evento ha sido modificado correctamente" });
 
   }catch(e){
-    console.error("Error al modificar evento: ", e)
+    res.status(500).json({ error: e.message });
   }
 
 });
@@ -175,7 +174,7 @@ app.get("/obtenerEventos", async (req, res) => {
     });
     res.status(200).json(events);
   }catch(e){
-    console.error("Error al obtener eventos: ", e)
+    res.status(500).json({ error: e.message });
   }
   
 });
@@ -197,8 +196,8 @@ app.get("/obtenerEvento/:eventId", async (req, res) => {
       res.status(200).json({ ...eventSnap.data() }); // Se devuelve el JSON con los datos
     }
   
-  } catch (error) {
-    res.status(500).json({ error: "Error al buscar evento", details: error.message });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
   }
 });
 
@@ -262,9 +261,9 @@ app.post('/webhook', async (req, res) => {
     
     res.status(200).json(preferenceId);
 
-  } catch (error) {
-    console.error("Error en la solicitud:", error);
-    res.status(500).json({ error: "Error interno del servidor" });
+  } catch (e) {
+    console.error("Error en la solicitud:", e);
+    res.status(500).json({ error: e.message });
   }
 });
 
@@ -283,7 +282,7 @@ app.get("/getAssistants/:eventId", async (req, res) => {
     console.log("Asistentes:", assistants);
     res.status(200).json(assistants)
   }catch(e){
-    console.error("Error buscando asistentes: ", e)
+    res.status(500).json({ error: e.message });
   }
 });
 
@@ -300,8 +299,7 @@ app.get("/getUser", async (req, res) => {
 
     res.json(response);
   } catch (error) {
-    console.error("Error en la solicitud:", error);
-    res.status(500).json({ error: "Error interno del servidor" });
+    res.status(500).json({ error: e.message });
   }
   
 });
