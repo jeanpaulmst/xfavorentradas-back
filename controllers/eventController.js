@@ -25,6 +25,8 @@ const generarPreferencia = async (req, res) => {
       }
     });
 
+    console.log(response);
+
     res.json({
       url: response.init_point,
       item_id: response.items[0].id,
@@ -33,7 +35,8 @@ const generarPreferencia = async (req, res) => {
       title: response.items[0].title,
       unit_price: response.items[0].unit_price,
       place: place,
-      date_of_expiration: expiration
+      date_of_expiration: expiration,
+      not_modifiable: false
     });
 
   } catch (e) {
@@ -57,7 +60,7 @@ const darBajaEvento = async (req, res) => {
   const { eventId } = req.params;
   try {
     const eventRef = doc(db, "events", eventId);
-    await setDoc(eventRef, { state: "inactivo" }, { merge: true });
+    await updateDoc(eventRef, { state: "inactivo" });
     res.status(200).json({ message: "El evento ha pasado a estado inactivo" });
   } catch (e) {
     res.status(500).json({ error: e.message });

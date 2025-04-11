@@ -31,7 +31,7 @@ export const recibirWebhook = async (req, res) => {
     const clientName = `${paymentData.payer.first_name} ${paymentData.payer.last_name}`;
 
     const eventsCollRef = collection(db, "events");
-    const q = query(eventsCollRef, where("id", "==", preferenceId));
+    const q = query(eventsCollRef, where("item_id", "==", preferenceId));
     const querySnapshot = await getDocs(q);
     const eventDoc = querySnapshot.docs[0];
 
@@ -40,6 +40,10 @@ export const recibirWebhook = async (req, res) => {
     }
 
     const eventRef = doc(db, "events", eventDoc.id);
+
+    //Evento deja de ser modificable
+    await updateDoc(eventRef, { not_modifiable: true });
+
     const assistantRef = doc(eventRef, "assistants", paymentId); 
     const assistantData = { name: clientName }; 
 

@@ -7,7 +7,7 @@ const router = express.Router();
 router.post('/webhook', assistantController.recibirWebhook);
 
 // Obtener asistentes de un evento
-router.get('/:eventId/asistentes', assistantController.obtenerAsistentes);
+router.get('/:eventId', assistantController.obtenerAsistentes);
 
 // Ruta de prueba para ver info de un pago
 router.get('/test/user', assistantController.obtenerDatosPago);
