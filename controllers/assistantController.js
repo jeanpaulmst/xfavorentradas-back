@@ -1,6 +1,6 @@
 import axios from 'axios';
 import db from '../config/firebase.js'; // Ajusta si es necesario
-import { collection, query, where, getDocs, doc, setDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, setDoc, updateDoc } from 'firebase/firestore';
 
 const ACCESS_TOKEN = process.env.MP_ACCESS_TOKEN;
 
@@ -15,23 +15,32 @@ async function getPaymentData(payment_id) {
     });
     return response.data;
   } catch (error) {
-    console.error('Error al obtener el pago:', error);
+    console.log("Error al obtener pago")
     throw error;
   }
 }
 
 // Webhook de MercadoPago
 export const recibirWebhook = async (req, res) => {
-  const paymentId = req.body.id;
+
+  const paymentId = parseInt(req.body.id);
+  console.log("ID de pago:", paymentId);
 
   try {
+  
     const paymentData = await getPaymentData(paymentId);
 
     const preferenceId = paymentData.additional_info.items.id;
+    console.log("ID de preferencia:", preferenceId);
+
+  
     const clientName = `${paymentData.payer.first_name} ${paymentData.payer.last_name}`;
+    console.log("Nombre del cliente:", clientName);
+ 
 
     const eventsCollRef = collection(db, "events");
-    const q = query(eventsCollRef, where("item_id", "==", preferenceId));
+    const q = query(eventsCollRef, where("pref_id", "==", preferenceId));
+  
     const querySnapshot = await getDocs(q);
     const eventDoc = querySnapshot.docs[0];
 
@@ -44,15 +53,17 @@ export const recibirWebhook = async (req, res) => {
     //Evento deja de ser modificable
     await updateDoc(eventRef, { not_modifiable: true });
 
-    const assistantRef = doc(eventRef, "assistants", paymentId); 
-    const assistantData = { name: clientName }; 
+    const assistantRef = collection(db, "events", eventDoc.id, "assistants");
+    const assistantDocRef = doc(assistantRef, preferenceId); 
+    const assistantData = { name: clientName, paymentId: paymentId }; 
 
-    await setDoc(assistantRef, assistantData);
+    await setDoc(assistantDocRef, assistantData);
 
     res.status(200).json({ message: "Asistente registrado", id: preferenceId });
 
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Error en la solicitud:", "error");
+    res.status(500).json({ error: "error.message" });
   }
 };
 

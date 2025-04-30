@@ -9,6 +9,8 @@ import loginRoutes from './routes/loginRoutes.js';
 dotenv.config();
 
 const app = express();
+app.set('trust proxy', true); 
+
 const PORT = process.env.PORT || 8080;
 
 app.use(cors());

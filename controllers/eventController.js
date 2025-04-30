@@ -9,7 +9,7 @@ const generarPreferencia = async (req, res) => {
 
   try {
     const item_id = nanoid();
-    console.log("Coso: ",{ name, place, price, expiration })
+    console.log("preference_input_data: ",{ name, place, price, expiration })
 
     const response = await preference.create({
       body: {
