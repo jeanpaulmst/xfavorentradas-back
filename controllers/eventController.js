@@ -4,6 +4,8 @@ import { collection, doc, getDoc, getDocs, query, setDoc, updateDoc, deleteDoc }
 import { preference } from '../config/mercadopago.js';
 import db from '../config/firebase.js';
 
+const NOTIF_URL = process.env.NOTIF_URL
+
 const generarPreferencia = async (req, res) => {
   const { name, place, price, expiration } = req.body;
 
@@ -21,7 +23,7 @@ const generarPreferencia = async (req, res) => {
             unit_price: Number(price),
           }
         ],
-        notification_url: "https://2a23-191-82-63-123.ngrok-free.app/assistants/webhook", //Cambiarlo en producción
+        notification_url: NOTIF_URL, //Cambiarlo en producción
         date_of_expiration: expiration
       }
     });
