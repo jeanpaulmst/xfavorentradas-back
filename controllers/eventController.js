@@ -21,11 +21,12 @@ const generarPreferencia = async (req, res) => {
             unit_price: Number(price),
           }
         ],
+        notification_url: "https://2a23-191-82-63-123.ngrok-free.app/assistants/webhook", //Cambiarlo en producción
         date_of_expiration: expiration
       }
     });
 
-    console.log(response);
+    console.log(response)
 
     res.json({
       url: response.init_point,
