@@ -92,11 +92,12 @@ const eliminarEvento = async (req, res) => {
 
 //Modifica el evento guardado en la bd
 const modificarEvento = async (req, res) => {
-  const { eventToModifyId, eventName, eventPlace } = req.body;
+  const eventId = req.params.eventId;
+  const { name, place, price, expiration} = req.body;
 
   try {
-    const eventRef = doc(db, "events", eventToModifyId);
-    await updateDoc(eventRef, { title: eventName, place: eventPlace });
+    const eventRef = doc(db, "events", eventId);
+    await updateDoc(eventRef, { title: name, place: place, unit_price: price, date_of_expiration: expiration });
     res.status(200).json({ message: "El evento ha sido modificado correctamente" });
   } catch (e) {
     res.status(500).json({ error: e.message });
