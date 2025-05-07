@@ -143,12 +143,34 @@ const modificarPreferencia = async (req,res) => {
   }
 };
 
+const verificarVencimientoEventos = async (querySnapshot) => {
+
+  const currentDate = new Date();
+  querySnapshot.forEach(async (document) => {
+
+    const eventData = document.data();
+    const expirationDate = new Date(eventData.date_of_expiration);
+
+    console.log("exp:", expirationDate.toISOString());
+    console.log("now:", currentDate.toISOString());
+
+    if (expirationDate < currentDate) {
+      const eventRef = doc(db, "events", document.id);
+      await updateDoc(eventRef, { state: "inactivo" });
+      console.log(`Evento ${document.id} ha sido marcado como inactivo`);
+    }
+  });
+}
 
 const obtenerEventos = async (req, res) => {
   let events = [];
   try {
     const q = query(collection(db, "events"));
     const querySnapshot = await getDocs(q);
+
+    //pasar a inactivos los eventos vencidos
+    await verificarVencimientoEventos(querySnapshot)
+
     querySnapshot.forEach((doc) => {
       events.push(doc.data());
     });
