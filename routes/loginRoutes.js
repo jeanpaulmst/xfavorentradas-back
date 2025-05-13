@@ -6,5 +6,6 @@ const router = express.Router();
 //POST,PUT eventos (ABM)
 router.get('/', loginController.test);
 router.post('/login', loginController.login);
+router.post('/reset-password', loginController.resetPassword);
 
 export default router;
