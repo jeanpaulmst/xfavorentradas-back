@@ -5,6 +5,9 @@ import dotenv from 'dotenv';
 import eventRoutes from './routes/eventRoutes.js';
 import assistantRoutes from './routes/assistantRoutes.js';
 import loginRoutes from './routes/loginRoutes.js';
+import bandsRoutes from './routes/bandsRoutes.js';
+import placeRoutes from './routes/placeRoutes.js';
+
 
 dotenv.config();
 
@@ -20,6 +23,8 @@ app.use(express.json());
 app.use('/events', eventRoutes);
 app.use('/assistants', assistantRoutes);
 app.use('/auth', loginRoutes);
+app.use('/bands', bandsRoutes)
+app.use('/places', placeRoutes);
 
 app.get('/', (req, res) => {
   res.send('API de gestión de eventos y asistentes 🎉');
